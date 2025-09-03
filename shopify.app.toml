@@ -1,0 +1,32 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "e35818903ecab1fe7cc3fadf85b25f3a"
+name = "customize-mala"
+application_url = "https://fan-evolution-obvious-reproduce.trycloudflare.com"
+embedded = true
+handle = "customize-mala"
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products, write_products"
+
+[auth]
+redirect_urls = ["https://fan-evolution-obvious-reproduce.trycloudflare.com/auth/callback", "https://fan-evolution-obvious-reproduce.trycloudflare.com/auth/shopify/callback", "https://fan-evolution-obvious-reproduce.trycloudflare.com/api/auth/callback"]
+
+[pos]
+embedded = false
