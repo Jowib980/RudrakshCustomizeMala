@@ -46,7 +46,7 @@ export default function App() {
                     let p = parsed.searchParams.get("p") || "";
 
                     // Map Shopify proxy path to app route
-                    if (p === "/apps/customize-mala") p = "mala-builder";
+                    // if (p === "/apps/customize-mala") p = "mala-builder";
 
                     parsed.searchParams.set("p", p);
 

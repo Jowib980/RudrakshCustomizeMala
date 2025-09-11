@@ -12,77 +12,8 @@ import logo from "../images/logo.png";
 import { useEffect } from "react";
 
 
-export const loader = async () => {
 
-  const query = `
-    query {
-      beads: products(first: 20, query: "tag:beads") {
-        edges {
-          node {
-            id
-            title
-            tags
-            description
-            images(first: 1) {
-              edges { node { url altText } }
-            }
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  title
-                  price {
-                    amount
-                    currencyCode
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      accessories: products(first: 20, query: "tag:accessories") {
-        edges {
-          node {
-            id
-            title
-            description
-            tags
-            images(first: 1) {
-              edges { node { url altText } }
-            }
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  title
-                  price {
-                    amount
-                    currencyCode
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  const response = await fetch(`https://${SHOPIFY_DOMAIN}/api/2025-07/graphql.json`, {
-    method: "POST",
-    headers: {
-      "X-Shopify-Storefront-Access-Token": STOREFRONT_ACCESS_TOKEN,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query }),
-  });
-
-  const data = await response.json();
-  return json(data);
-};
-
-export default function Proxy() {
+export default function MalaBuilder() {
   const [beads, setBeads] = useState([]);
   const [accessories, setAccessories] = useState([]);
 
@@ -458,88 +389,83 @@ const handleAddToCart = async () => {
 
             {/* Chain */}
             {options.chains.length > 0 && (
-              <select
-                style={{ padding: "5px" }}
-                value={selectedChain?.id || ""}
-                onChange={e => {
-                  const chain = options.chains.find(c => c.node.id === e.target.value);
-                  setSelectedChain(chain?.node || null);
-                }}
-              >
-                {selectedDesign === "design1" && (
+              selectedDesign === "design1" ? (
+                <select
+                  style={{ padding: "5px" }}
+                  value={selectedChain?.id || ""}
+                  onChange={e => {
+                    const chain = options.chains.find(c => c.node.id === e.target.value);
+                    setSelectedChain(chain?.node || null);
+                  }}
+                >
                   <option value="">-- Choose Chain --</option>
-                )}
-
-                {options.chains.map(c => (
-                  <option key={c.node.id} value={c.node.id}>
-                    {c.node.title} (+${c.node.variants.edges[0].node.price.amount})
-                  </option>
-                ))}
-              </select>
+                  {options.chains.map(c => (
+                    <option key={c.node.id} value={c.node.id}>
+                      {c.node.title} (+₹{c.node.variants.edges[0].node.price.amount})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div>
+                  <strong>Chain: </strong>
+                  <span>
+                    {selectedChain
+                      ? `${selectedChain.title} (+₹${selectedChain.variants.edges[0].node.price.amount})`
+                      : "No Chain Selected"}
+                  </span>
+                </div>
+              )
             )}
 
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <h3>Choose Capping material</h3>
+            
             {options.caps.length > 0 && (
-              <div>
-                {/* Always render "With Cap" option */}
-                <label>
-                  <input
-                    type="radio"
-                    checked={selectedCap === true}
-                    onChange={() => setSelectedCap(true)}
-                  />{" "}
-                  With Cap
-                </label>
+              <>
+                <h3>Choose Capping material</h3>
+                <div>
+                  {/* Always render "With Cap" option */}
+                  <label>
+                    <input
+                      type="radio"
+                      checked={selectedCap === true}
+                      onChange={() => setSelectedCap(true)}
+                    />{" "}
+                    With Cap
+                  </label>
 
-                {/* Show dropdown only if With Cap */}
-                {selectedCap && options.caps.length > 0 && (
-                  <select
-                    value={selectedCapVariant?.id || ""}
-                    onChange={(e) => {
-                      const selected = options.caps
-                        .map((cap) => cap.node.variants.edges)
-                        .flat()
-                        .find((v) => v.node.id === e.target.value)?.node;
+                  {/* Show dropdown only if With Cap */}
+                  {selectedCap && options.caps.length > 0 && (
+                    <select
+                      value={selectedCapVariant?.id || ""}
+                      onChange={(e) => {
+                        const selected = options.caps
+                          .map((cap) => cap.node.variants.edges)
+                          .flat()
+                          .find((v) => v.node.id === e.target.value)?.node;
 
-                      setSelectedCapVariant(selected || null);
-                    }}
-                    style={{ margin: "10px", padding: "8px" }}
-                  >
-                    {/* <option value="">-- Select Cap Type --</option> */}
-                    {options.caps.flatMap((cap) =>
-                      cap.node.variants.edges.map((v) => (
-                        <option key={v.node.id} value={v.node.id}>
-                          {v.node.title ||
-                            v.node.selectedOptions.map((o) => o.value).join(" / ")}{" "}
-                          (+₹{v.node.price.amount})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                )}
-              </div>
+                        setSelectedCapVariant(selected || null);
+                      }}
+                      style={{ margin: "10px", padding: "8px" }}
+                    >
+                      {/* <option value="">-- Select Cap Type --</option> */}
+                      {options.caps.flatMap((cap) =>
+                        cap.node.variants.edges.map((v) => (
+                          <option key={v.node.id} value={v.node.id}>
+                            {v.node.title ||
+                              v.node.selectedOptions.map((o) => o.value).join(" / ")}{" "}
+                            (+₹{v.node.price.amount})
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  )}
+                </div>
+              </>
             )}
 
           </div>
-
-          {/* Summary */}
-          {/*{malaItems.length > 0 && (
-            <div style={{ marginTop: "30px", borderTop: "1px solid #ddd", paddingTop: "20px" }}>
-              <h3>Selected Beads:</h3>
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {malaItems.map(item => (
-                  <li key={item.id} style={{ marginBottom: 10 }}>
-                  {item.title} - Qty: {item.quantity} - Price: ₹{(item.price * item.quantity).toFixed(2)}
-                <button onClick={() => handleRemove(item.id)} style={{ background: "#212862", color: "#fff", padding: "8px 15px", border: "none", borderRadius: "6px", marginLeft: "10px" }}>Remove</button>
-                </li>
-                ))}
-                </ul>
-              
-            </div>
-          )}*/}
 
           {/* Summary */}
           {malaItems.length > 0 && (
@@ -614,23 +540,6 @@ const handleAddToCart = async () => {
               </ul>
             </div>
           )}
-
-
-          {/* Accessories Summary */}
-          {/*{(selectedThread || selectedChain || selectedCap) && (
-            <>
-              <h3>Accessories:</h3>
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {selectedThread && <li>Thread: {selectedThread}</li>}
-                {selectedChain && <li>Chain: {selectedChain.title} (+₹{chainPrice.toFixed(2)})</li>}
-                {selectedCap && selectedCapVariant && (
-                  <li>
-                    Cap: {selectedCapVariant.title} (+₹{parseFloat(selectedCapVariant.price.amount).toFixed(2)} × {totalBeads} = ₹{capPrice.toFixed(2)})
-                  </li>
-                )}
-              </ul>
-            </>
-          )}*/}
 
           {(selectedThread || selectedChain || selectedCap) && (
             <>
