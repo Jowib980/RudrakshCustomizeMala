@@ -1,0 +1,36 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "e35818903ecab1fe7cc3fadf85b25f3a"
+name = "customize-mala"
+application_url = "https://customize-mala.cardiacambulance.com/app"
+embedded = true
+handle = "customize-mala"
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "https://sprint-switches-bunny-republican.trycloudflare.com/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "https://sprint-switches-bunny-republican.trycloudflare.com/webhooks/app/uninstalled"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_draft_orders,read_products,write_draft_orders,write_products"
+
+[auth]
+redirect_urls = [ "https://customize-mala.cardiacambulance.com/auth/callback" ]
+
+[app_proxy]
+url = "https://customize-mala.cardiacambulance.com/mala-builder"
+subpath = "customize-mala"
+prefix = "apps"
+
+[pos]
+embedded = true
