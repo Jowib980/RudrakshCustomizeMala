@@ -4,6 +4,7 @@ import { json } from "@remix-run/node";
 const SHOPIFY_DOMAIN = "customize-mala.myshopify.com";
 const STOREFRONT_ACCESS_TOKEN = "79b3b24d80031c9e6e17f53fdd81eb4a";
 
+
 export const loader = async () => {
   const query = `
     query {

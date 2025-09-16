@@ -16,4 +16,6 @@ module.exports = {
   assetsBuildDirectory: "build/client/assets",
   publicPath: "https://customize-mala.cardiacambulance.com/assets/",
   ignoredRouteFiles: ["**/.*"],
+  serverDependenciesToBundle: [],
+  future: {},
 };

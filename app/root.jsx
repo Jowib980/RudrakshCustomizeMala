@@ -5,6 +5,7 @@ import {
   ScrollRestoration,
   Outlet,
 } from "@remix-run/react";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       </head>
       <body>
         <Outlet />
+        <Toaster position="top-right" reverseOrder={false} />
         <ScrollRestoration />
         <Scripts />
 
