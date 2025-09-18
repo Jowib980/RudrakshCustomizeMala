@@ -25,15 +25,23 @@ export default function MalaBuilder() {
   const [accessories, setAccessories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [beadError, setBeadError] = useState(false);
+  const [yantras, setYantras] = useState([]);
 
 
   const designs = [
-    { id: "design1", name: "Type 1-Silver Capping Kawach", img: design1 },
-    { id: "design2a", name: "Type 2A- Kawach in Rudraksh Mala", img: design2a },
-    { id: "design2b", name: "Type 2B- Kawach in Rudraksh Mala with Silver", img: design2b },
-    { id: "design3", name: "Type 3- Kawach in Thread", img: design3 },
-    { id: "design4a", name: "Type 4A- Kawach In Rudraksh Sphatic Mala", img: design4a },
-    { id: "design4b", name: "Type 4B- Kawach In Rudraksh Sphatic Mala with silver", img: design4b },
+    // { id: "design1", name: "Type 1-Silver Capping Kawach", img: design1 },
+    // { id: "design2a", name: "Type 2A- Kawach in Rudraksh Mala", img: design2a },
+    // { id: "design2b", name: "Type 2B- Kawach in Rudraksh Mala with Silver", img: design2b },
+    // { id: "design3", name: "Type 3- Kawach in Thread", img: design3 },
+    // { id: "design4a", name: "Type 4A- Kawach In Rudraksh Sphatic Mala", img: design4a },
+    // { id: "design4b", name: "Type 4B- Kawach In Rudraksh Sphatic Mala with silver", img: design4b },
+
+    { id: "design1", name: "Type 1", img: design1 },
+    { id: "design2a", name: "Type 2A", img: design2a },
+    { id: "design2b", name: "Type 2B", img: design2b },
+    { id: "design3", name: "Type 3", img: design3 },
+    { id: "design4a", name: "Type 4A", img: design4a },
+    { id: "design4b", name: "Type 4B", img: design4b },
   ];
 
 
@@ -43,6 +51,11 @@ export default function MalaBuilder() {
       .then(data => {
         setBeads(data.data.beads.edges);
         setAccessories(data.data.accessories.edges);
+        setYantras(
+          data.data.yantras.products.edges.filter(
+            ({ node }) => node.tags.includes("silveryantra")
+          )
+        );     
       });
   }, []);
 
@@ -60,7 +73,7 @@ export default function MalaBuilder() {
     },
     design2b: { 
       threads: [],
-      chains: accessories.filter(a => a.node.tags.includes("rudrakshmalasilver")),
+      chains: accessories.filter(a => a.node.tags.includes("rudrakshmalawithcapping")),
       caps: accessories.filter(a => a.node.tags.includes("cap")),
     },
     design3: { threads: appSettings.threads, chains: [], caps: [] },
@@ -87,6 +100,7 @@ export default function MalaBuilder() {
   const [selectedVariantId, setSelectedVariantId] = useState(""); 
   const [userIp, setUserIp] = useState(null);
   const [isReady, setIsReady] = useState(false);
+  const [selectedYantra, setSelectedYantra] = useState("");
 
   const options = designOptions[selectedDesign];
 
@@ -137,6 +151,8 @@ export default function MalaBuilder() {
 
         setSelectedBeadId(data.selectedBeadId || null);
         setSelectedVariantId(data.selectedVariantId || null);
+
+        setSelectedYantra(data.selectedYantra || null);
       } catch (e) {
         console.log("Error parsing saved data:", e);
       }
@@ -157,6 +173,7 @@ export default function MalaBuilder() {
       selectedChain,
       selectedCap,
       selectedCapVariant,
+      selectedYantra,
     };
 
     localStorage.setItem(`mala-builder-${userIp}`, JSON.stringify(dataToSave));
@@ -171,6 +188,7 @@ export default function MalaBuilder() {
     selectedChain,
     selectedCap,
     selectedCapVariant,
+    selectedYantra
   ]);
 
 
@@ -187,6 +205,25 @@ export default function MalaBuilder() {
       }
     }
   }, [selectedDesign, options.caps]);
+
+    
+  useEffect(() => {
+    if (!selectedDesign) return;
+
+    const options = designOptions[selectedDesign];
+
+    if (selectedDesign === "design1") {
+      // If neither chain nor thread is selected, auto-select first chain
+      if (!selectedChain && !selectedThread && options.chains.length > 0) {
+        setSelectedChain(options.chains[0].node);
+      }
+    } else {
+      // For other designs, auto-select first thread if not selected
+      if (options.threads.length > 0 && !selectedThread) {
+        setSelectedThread(options.threads[0]);
+      }
+    }
+  }, [selectedDesign, options.threads, options.chains, selectedThread, selectedChain]);
 
 
   const handleDesignChange = (designId) => {
@@ -251,14 +288,20 @@ export default function MalaBuilder() {
 
   const handleRemove = (id) => setMalaItems(malaItems.filter(item => item.id !== id));
   
+  const handleRemoveYantra = () => {
+    setSelectedYantra(null);
+  };
+
+  
   const totalBeads = malaItems.reduce((sum, item) => sum + item.quantity, 0);
   const beadsTotal = malaItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const chainPrice = selectedChain ? parseFloat(selectedChain.variants.edges[0].node.price.amount) : 0;
   const capPrice = selectedCap && selectedCapVariant
   ? parseFloat(selectedCapVariant.price.amount) * totalBeads
   : 0;
+  const yantraPrice = selectedYantra ? parseFloat(selectedYantra.variants.edges[0].node.price.amount) : 0;
 
-  const totalPrice = beadsTotal + chainPrice + capPrice;
+  const totalPrice = beadsTotal + chainPrice + capPrice + yantraPrice;
 
 
   const CUSTOM_PRODUCT_VARIANT_ID = "gid://shopify/ProductVariant/46091600363671"; // your variant ID 
@@ -267,100 +310,106 @@ export default function MalaBuilder() {
 
   const selectedDesignObj = designs.find(d => d.id === selectedDesign);
 
-const handleAddToCart = async () => {
+  const handleAddToCart = async () => {
+console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaItems });
+    const totalBeads = malaItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const totalBeads = malaItems.reduce((sum, item) => sum + item.quantity, 0);
+    let count1Mukhi = 0;
+    let countGaurishankar = 0;
 
-  let count1Mukhi = 0;
-  let countGaurishankar = 0;
+    malaItems.forEach(item => {
+      // Find the bead by matching variant ID
+      const beadNode = beads.find(b =>
+        b.node.variants.edges.some(v => v.node.id === item.id)
+      )?.node;
 
-  malaItems.forEach(item => {
-    // Find the bead by matching variant ID
-    const beadNode = beads.find(b =>
-      b.node.variants.edges.some(v => v.node.id === item.id)
-    )?.node;
+      if (!beadNode) return;
 
-    if (!beadNode) return;
+      const tags = Array.isArray(beadNode.tags) ? beadNode.tags : [];
 
-    const tags = Array.isArray(beadNode.tags) ? beadNode.tags : [];
-
-    if (tags.includes("1mukhi")) count1Mukhi += item.quantity;
-    if (tags.includes("gaurishankar")) countGaurishankar += item.quantity;
-  });
-
-  const has1Mukhi = count1Mukhi > 0;
-  const hasGaurishankar = countGaurishankar > 0;
-
-  // Minimum beads check
-  if (totalBeads < 3) {
-    return toast.error("You need to select at least 3 beads before checkout!");
-  }
-
-  // Special bead rules
-  if (has1Mukhi && hasGaurishankar) {
-    if (totalBeads % 2 !== 0) {
-      return toast.error(
-        "Since you selected 1 Mukhi and Gaurishankar beads, total beads must be even! Please add or remove a bead."
-      );
-    }
-  } else {
-    if (totalBeads % 2 === 0) {
-      return toast.error(
-        "Total beads must be odd! Please add or remove a bead."
-      );
-    }
-  }
-
-  // Proceed to create draft order and redirect
-  try {
-    setLoading(true);
-    const res = await fetch(`${API_BASE_URL}/proxy`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        quantity: 1,
-        totalPrice,
-        selections: {
-          Design: selectedDesignObj.name,
-          DesignImage: selectedDesignObj.img
-            ? `${DOMAIN}${selectedDesignObj.img}`
-            : "",
-          Beads: malaItems
-            .map(i => `${i.title} x${i.quantity} = ₹${(i.price * i.quantity).toFixed(2)}`)
-            .join(", "),
-          Thread: selectedThread || "None",
-          Chain: selectedChain
-            ? `${selectedChain.title} (+₹${parseFloat(selectedChain.variants.edges[0].node.price.amount).toFixed(2)})`
-            : "None",
-          Cap: selectedCap
-            ? `${selectedCapVariant?.title} (+₹${parseFloat(selectedCapVariant.price.amount).toFixed(2)} × ${totalBeads} = ₹${capPrice.toFixed(2)})`
-            : "Without Cap",
-        },
-      }),
+      if (tags.includes("1mukhi")) count1Mukhi += item.quantity;
+      if (tags.includes("gaurishankar")) countGaurishankar += item.quantity;
     });
 
-    const data = await res.json();
+    const has1Mukhi = count1Mukhi > 0;
+    const hasGaurishankar = countGaurishankar > 0;
 
-    if (data.checkoutUrl) {
-      setLoading(false);
-      window.location.href = data.checkoutUrl; // redirect to checkout
-    } else {
-      setLoading(false);
-      toast.error("Checkout error: " + (data?.message || JSON.stringify(data)));
+    // Minimum beads check
+    if (totalBeads < 3) {
+      return toast.error("You need to select at least 3 beads before checkout!");
     }
-  } catch (err) {
-    toast.error("Checkout error: " + err.message);
-    setLoading(false);
-  }
-};
 
+    if (totalBeads > 53) {
+      return toast.error("The maximum beads allowed are 53. You need to remove a bead for proceed.");
+    }
 
+    // Special bead rules
+    if (has1Mukhi && hasGaurishankar) {
+      if (totalBeads % 2 !== 0) {
+        return toast.error(
+          "Since you selected 1 Mukhi and Gaurishankar beads, total beads must be even! Please add or remove a bead."
+        );
+      }
+    } else {
+      if (totalBeads % 2 === 0) {
+        return toast.error(
+          "Total beads must be odd! Please add or remove a bead."
+        );
+      }
+    }
+
+    // Proceed to create draft order and redirect
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/proxy`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quantity: 1,
+          totalPrice,
+          selections: {
+            Design: selectedDesignObj.name,
+            DesignImage: selectedDesignObj.img
+              ? `${DOMAIN}${selectedDesignObj.img}`
+              : "",
+            Beads: malaItems
+              .map(i => `${i.title} x${i.quantity} = ₹${(i.price * i.quantity).toFixed(2)}`)
+              .join(", "),
+            Thread: selectedThread || "None",
+            Mala: selectedChain
+              ? `${selectedChain.title} (+₹${parseFloat(selectedChain.variants.edges[0].node.price.amount).toFixed(2)})`
+              : "None",
+            Cap: selectedCap
+              ? `${selectedCapVariant?.title} (+₹${parseFloat(selectedCapVariant.price.amount).toFixed(2)} × ${totalBeads} = ₹${capPrice.toFixed(2)})`
+              : "Without Cap",
+            Yantra: selectedYantra
+              ? `${selectedYantra.title} (+₹${parseFloat(selectedYantra.variants.edges[0].node.price.amount).toFixed(2)})`
+              : "None",
+
+          },
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.checkoutUrl) {
+        setLoading(false);
+        window.location.href = data.checkoutUrl; // redirect to checkout
+      } else {
+        setLoading(false);
+        toast.error("Checkout error: " + (data?.message || JSON.stringify(data)));
+      }
+    } catch (err) {
+      toast.error("Checkout error: " + err.message);
+      setLoading(false);
+    }
+  };
   
   return (
-    <div class="container">
+    <div className="container">
       
       
-      <div class="main-section">
+      <div className="main-section">
 
         {loading && (
           <div className="loader-overlay">
@@ -368,38 +417,45 @@ const handleAddToCart = async () => {
           </div>
         )}
 
-        <div class="logo-section">
-          <img src={logo} alt="Logo" class="logo-image" />
+        <div className="logo-section">
+          <img src={logo} alt="Logo" className="logo-image" />
         </div>
-        <h1 class="main-heading">Customize Your Mala - Select your Mala Variant</h1>
+        <h1 className="main-heading">Customize Your Mala - Select your Mala Variant</h1>
 
-        <div class="main-container">
+        <div className="main-container">
           {/* Left: Main image */}
-          <div class="left-section">
+          <div className="left-section">
             <img
               src={designs.find(d => d.id === selectedDesign)?.img}
               alt={selectedDesign}
-              class="selected-image"
+              className="selected-image"
             />
           </div>
 
           {/* Right: Configurator */}
-          <div class="right-section">
+          <div className="right-section">
             
             {/* Design selection */}
-            <h3 class="section-heading">Select Your Design:</h3>
-            <div class="design-section">
+            <h3 className="section-heading">Select Your Design:</h3>
+            <div className="design-section">
               {designs.map(d => (
                 <div
                   key={d.id}
-                  class="design-div"
-                  onClick={() => handleDesignChange(d.id)}
-                  style={{
-                    border: selectedDesign === d.id ? "3px solid #212862" : "1px solid #ddd", 
-                  }}
+                  className="design-div"
+                  onClick={() => {
+                    console.log("Design clicked:", d.id);
+                    handleDesignChange(d.id)}}
+                  // style={{
+                  //   border: selectedDesign === d.id ? "3px solid #212862" : "1px solid #ddd", 
+                  // }}
                 >
-                  <img src={d.img} alt={d.name} class="design-image-div" />
-                  {/* <div style={{ marginTop: "8px", fontWeight: "bold" }}>{d.name}</div> */}
+                  <div key={d.id} style={{ marginBottom: "8px", fontWeight: "bold" }} >{d.name}</div>
+                  <div style={{
+                      border: selectedDesign === d.id ? "3px solid #212862" : "1px solid #ddd",
+                      borderRadius: "10px" 
+                  }}>
+                    <img src={d.img} alt={d.name} className="design-image-div" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -411,11 +467,12 @@ const handleAddToCart = async () => {
               {options.threads.length > 0 && (
                 <>
 
-                <h3>Choose Thread / Chain</h3>
+                <h3>Choose Thread / Mala</h3>
                   {selectedDesign === "design1" ? (
                     // 🔹 Single merged dropdown (Threads + Chains)
                     <select
-                      style={{ padding: "5px", marginRight: "10px", borderRadius: "4px" }}
+                      className="dropdown"
+                      style={{ padding: "8px", marginRight: "10px", borderRadius: "4px",border: "1px solid rgb(221, 221, 221)" }}
                       value={selectedThread || selectedChain?.id || ""}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -432,7 +489,7 @@ const handleAddToCart = async () => {
                         }
                       }}
                     >
-                      <option value="">-- Choose Thread / Chain --</option>
+                      <option value=""> Choose Thread / Mala </option>
 
                       {/* Threads */}
                       {options.threads.map((t) => (
@@ -452,11 +509,12 @@ const handleAddToCart = async () => {
                     <>
                       {/* 🔹 Normal Thread dropdown */}
                       <select
-                        style={{ padding: "5px", borderRadius: "4px"  }}
-                        value={selectedThread}
+                        className="dropdown"
+                        style={{ padding: "8px", marginRight: "10px", borderRadius: "4px",border: "1px solid rgb(221, 221, 221)" }}
+                        value={selectedThread || ""}
                         onChange={(e) => setSelectedThread(e.target.value)}
                       >
-                        <option value="">-- Choose Thread --</option>
+                        <option value=""> Choose Thread </option>
                         {options.threads.map((t) => (
                           <option key={`thread-${t}`} value={t}>
                             {t}
@@ -468,10 +526,41 @@ const handleAddToCart = async () => {
                   )}
                 </>
               )}
+
+              {options.chains.length > 0 && (
+                <>
+
+                  {selectedDesign === "design2b" && (
+                    <>
+                    <h3>Choose Mala</h3>
+                    <select
+                      className="dropdown"
+                      style={{ padding: "8px", marginRight: "10px", borderRadius: "4px",border: "1px solid rgb(221, 221, 221)" }}
+                      value={selectedChain?.id}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const chain = options.chains.find((c) => c.node.id === value);
+                        setSelectedChain(chain?.node || null);
+                        
+                      }}
+                    >
+
+                      {/* Chains */}
+                      {options.chains.map((c) => (
+                        <option key={`chain-${c.node.id}`} value={c.node.id}>
+                          {c.node.title} (+₹{c.node.variants.edges[0].node.price.amount})
+                        </option>
+                      ))}
+                    </select>
+                    </>
+                    )}
+                </>
+              )}
+
             </div>
 
 
-            <div class="cap-section">
+            <div className="cap-section">
               
               {options.caps.length > 0 && (
                 <>
@@ -499,7 +588,7 @@ const handleAddToCart = async () => {
 
                           setSelectedCapVariant(selected || null);
                         }}
-                        style={{ margin: "0px 10px 10px 10px", padding: "8px", borderRadius: "4px"  }}
+                        style={{ margin: "0px 10px 10px 10px", padding: "8px", borderRadius: "4px", border: "1px solid rgb(221, 221, 221)"  }}
                       >
                         {/* <option value="">-- Select Cap Type --</option> */}
                         {options.caps.flatMap((cap) =>
@@ -520,16 +609,69 @@ const handleAddToCart = async () => {
             </div>
 
 
+            {/* Summary */}
+            {malaItems.length > 0 && (
+              <div className="beads-summary">
+                <h3>Selected Beads:</h3>
+                <ul style={{ listStyle: "none", padding: 0 }}>
+                  {malaItems.map((item) => (
+                    <li key={item.id} className="beads-list">
+                      <span>
+                        {item.title} - Price: ₹{(item.price * item.quantity).toFixed(2)}
+                      </span>
+
+                      <div className="action">
+                      {/* Quantity controls */}
+                      <div className="quantity-section">
+                        <button
+                          type="button"
+                          onClick={() => setMalaItems((prev) =>
+                            prev.map((i) =>
+                              i.id === item.id
+                                ? { ...i, quantity: Math.max(1, i.quantity - 1) }
+                                : i
+                            )
+                          )}
+                          className="quantity-button"
+                        >
+                          –
+                        </button>
+                        <span className="qty-value">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => setMalaItems((prev) =>
+                            prev.map((i) =>
+                              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+                            )
+                          )}
+                          className="quantity-button"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => handleRemove(item.id)}
+                        className="remove-button"
+                      >
+                        Remove
+                      </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Dropdowns */}
-            <div class="bead-headings">
+            <div className="bead-headings">
               <h3 style={{ margin: "5px" }}>Select Bead:</h3>
               {malaItems.length > 0 && (
-                <span class="sub-heading">Select more beads here...</span>
+                <span className="sub-heading">(Select more beads here...)</span>
               )}
             </div>
-            <div class="bead-section">
-
-                <select
+            <div className="bead-section">
+              <select
                   value={selectedBeadId}
                   onChange={e => {
                     setSelectedBeadId(e.target.value);
@@ -543,7 +685,7 @@ const handleAddToCart = async () => {
                     borderRadius: "4px" 
                   }}
                 >
-                  <option value="">-- Select Bead --</option>
+                  <option value=""> Select Bead </option>
                   {beads.map(p => (
                     <option key={p.node.id} value={p.node.id}>
                       {p.node.title}
@@ -566,7 +708,7 @@ const handleAddToCart = async () => {
                       borderRadius: "4px" 
                     }}
                   >
-                    <option value="">-- Select Bead Type --</option>
+                    <option value=""> Select Bead Type </option>
                     {selectedBeadId &&
                       beads.find(p => p.node.id === selectedBeadId)?.node?.variants?.edges.map(v => (
                         <option key={v.node.id} value={v.node.id}>
@@ -576,87 +718,73 @@ const handleAddToCart = async () => {
                   </select>
                 )}
 
-              
-              <div class="quantity-section">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  class="quantity-button"
-                >
-                  –
+              <div className="action-row">
+                <div className="quantity-section">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    className="quantity-button"
+                  >
+                    –
+                  </button>
+
+                  <span className="qty-value">{quantity}</span>
+
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(q => q + 1)}
+                    className="quantity-button"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <button onClick={handleAdd}
+                  className="add-button">
+                  Add
                 </button>
-
-                <span class="qty-value">{quantity}</span>
-
-                <button
-                  type="button"
-                  onClick={() => setQuantity(q => q + 1)}
-                  class="quantity-button"
-                >
-                  +
-                </button>
-              </div>
-
-              <button onClick={handleAdd}
-                class="add-button">
-                Add
-              </button>
+                </div>
             </div>
 
+            <div className="yantra-container">
+              <div className="yantra-heading">
+                  <h3 style={{ margin: "5px" }}>Choose Yantra:</h3>
+                  <span className="yantra-sub-heading">(Optional)</span>
+                </div>
+              <div className="yantra-section">
+                {yantras.map(({ node }) => (
+                  <div
+                    key={node.id}
+                    className="yantra-div"
+                    onClick={() => setSelectedYantra(node)}
+                  >
+                    
+                    <div
+                      style={{
+                        border:
+                          selectedYantra?.id === node.id
+                            ? "3px solid #212862"
+                            : "1px solid #ddd",
+                        borderRadius: "10px"
+                      }}
+                    >
+                      <img
+                        src={node.images.edges[0]?.node.url || "/placeholder.jpg"}
+                        alt={node.title}
+                        className="yantra-image"
+                      />
+                    </div>
 
-            {/* Summary */}
-            {malaItems.length > 0 && (
-              <div class="beads-summary">
-                <h3>Selected Beads:</h3>
-                <ul style={{ listStyle: "none", padding: 0 }}>
-                  {malaItems.map((item) => (
-                    <li key={item.id} class="beads-list">
-                      <span style={{ flex: 1 }}>
-                        {item.title} - Price: ₹{(item.price * item.quantity).toFixed(2)}
-                      </span>
-
-                      {/* Quantity controls */}
-                      <div class="quantity-section">
-                        <button
-                          type="button"
-                          onClick={() => setMalaItems((prev) =>
-                            prev.map((i) =>
-                              i.id === item.id
-                                ? { ...i, quantity: Math.max(1, i.quantity - 1) }
-                                : i
-                            )
-                          )}
-                          class="quantity-button"
-                        >
-                          –
-                        </button>
-                        <span class="qty-value">{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => setMalaItems((prev) =>
-                            prev.map((i) =>
-                              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-                            )
-                          )}
-                          class="quantity-button"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={() => handleRemove(item.id)}
-                        class="remove-button"
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                    <div class="yantra-details">
+                      <p>{node.title}</p>
+                      <p>Rs. {node.variants.edges[0].node.price.amount}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
 
-            {(selectedThread || selectedChain || selectedCap) && (
+            {(selectedThread || selectedChain || selectedCap || selectedYantra) && (
               <>
                 <h3>Accessories:</h3>
                 <ul style={{ listStyle: "none", padding: 0 }}>
@@ -664,15 +792,7 @@ const handleAddToCart = async () => {
 
                   {selectedChain && (
                     <li style={{ marginBottom: "10px"}}>
-                      <b> Chain: </b> {selectedChain.title} (+₹{chainPrice.toFixed(2)})
-                      {selectedDesign === "design1" && (
-                        <button
-                          onClick={() => setSelectedChain(null)}
-                          class="remove-button"
-                        >
-                          Remove
-                        </button>
-                      )}
+                      <b> Mala Type: </b> {selectedChain.title} (+₹{chainPrice.toFixed(2)})
                     </li>
                   )}
 
@@ -683,6 +803,21 @@ const handleAddToCart = async () => {
                       {capPrice.toFixed(2)})
                     </li>
                   )}
+
+                  {selectedYantra && (
+                    <li style={{ marginBottom: "10px" }}>
+                      <b> Yantra: </b> {selectedYantra.title} (+₹
+                      {parseFloat(selectedYantra.variants.edges[0].node.price.amount).toFixed(2)})
+
+                      <button
+                        onClick={handleRemoveYantra}
+                        className="remove-button"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  )}
+
                 </ul>
               </>
             )}

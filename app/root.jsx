@@ -12,12 +12,22 @@ export default function App() {
     <html lang="en">
       <head>
         <Meta />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <Links />
         <link rel="icon" href="https://customize-mala.cardiacambulance.com/favicon.ico" />
       </head>
       <body>
         <Outlet />
-        <Toaster position="top-right" reverseOrder={false} />
+        <Toaster
+          position="top-right"
+          containerStyle={{
+            position: "fixed",  // force fixed
+            top: 20,
+            right: 20,
+            zIndex: 999999,
+          }}
+        />
+
         <ScrollRestoration />
         <Scripts />
 

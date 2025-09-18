@@ -1,14 +1,11 @@
 // app/routes/api/mala-products.jsx
 import { json } from "@remix-run/node";
 
-const SHOPIFY_DOMAIN = "customize-mala.myshopify.com";
-const STOREFRONT_ACCESS_TOKEN = "79b3b24d80031c9e6e17f53fdd81eb4a";
-
 
 export const loader = async () => {
   const query = `
     query {
-      beads: products(first: 20, query: "tag:beads") {
+      beads: products(first: 250, query: "tag:beads") {
         edges {
           node {
             id
@@ -16,11 +13,11 @@ export const loader = async () => {
             tags
             description
             images(first: 1) { edges { node { url altText } } }
-            variants(first: 10) { edges { node { id title price { amount currencyCode } } } }
+            variants(first: 50) { edges { node { id title price { amount currencyCode } } } }
           }
         }
       }
-      accessories: products(first: 20, query: "tag:accessories") {
+      accessories: products(first: 250, query: "tag:accessories") {
         edges {
           node {
             id
@@ -28,7 +25,51 @@ export const loader = async () => {
             tags
             description
             images(first: 1) { edges { node { url altText } } }
-            variants(first: 10) { edges { node { id title price { amount currencyCode } } } }
+            variants(first: 50) { edges { node { id title price { amount currencyCode } } } }
+          }
+        }
+      }
+      collections(first: 10) {
+        edges {
+          node {
+            id
+            title
+            handle
+          }
+        }
+      }
+      yantras: collectionByHandle(handle: "vedic-yantras") {
+        id
+        title
+        description
+        products(first: 250) {
+          edges {
+            node {
+              id
+              title
+              tags
+              description
+              images(first: 1) {
+                edges {
+                  node {
+                    url
+                    altText
+                  }
+                }
+              }
+              variants(first: 50) {
+                edges {
+                  node {
+                    id
+                    title
+                    price {
+                      amount
+                      currencyCode
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -45,5 +86,6 @@ export const loader = async () => {
   });
 
   const data = await response.json();
+  console.log(data);
   return json(data);
 };

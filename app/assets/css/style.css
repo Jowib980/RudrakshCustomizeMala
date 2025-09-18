@@ -66,7 +66,7 @@
 {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-	gap: 15px;
+	gap: 10px;
 	margin: 15px 0;
 }
 
@@ -74,7 +74,6 @@
 {
 	flex: 1;
     border-radius: 10px;
-    padding: 10px;
     text-align: center;
     cursor: pointer;
     transition: 0.2s;
@@ -100,7 +99,6 @@
     gap: 20px;
     border: 1px solid grey;
     border-radius: 14px;
-    padding: 3px 3px;
 }
 
 .quantity-button
@@ -217,7 +215,7 @@ svg.w-5.h-5 {
 
 .bead-headings {
 	display: flex;
-	gap:  10px;
+	gap:  1px;
 }
 
 .sub-heading {
@@ -255,20 +253,273 @@ svg.w-5.h-5 {
   }
 }
 
+/* force toaster container to be fixed instead of absolute */
+div[class*="go4109123758"] {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  left: auto !important;
+  z-index: 999999 !important;
+}
+
+
+.action-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.action {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.dropdown {
+    padding: 8px;
+    margin-right: 10px;
+    border-radius: 4px;
+    border: 1px solid rgb(221, 221, 221);
+}
+
+.yantra-heading {
+    display: flex;
+}
+
+span.yantra-sub-heading {
+    margin: 5px;
+    color: #606060;
+}
+
+.yantra-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+
+.yantra-image {
+    width: 100%;
+}
+
+.yantra-details {
+  margin: 8px;
+}
+
+.yantra-details p {
+  font-weight: 600;
+  margin: 2px 0;
+}
+
 
 /*mobile view*/
 
-@media((min-width: 267px) and (max-width:  350px))
-{
-    .main-conatiner {
-        display: grid;
+@media (min-width:  267px) and (max-width: 480px) {
+    .main-container {
+        display: block;
+    }
+
+    .left-section, 
+    .right-section {
+        width: auto;
+        padding: 10px;
+    }
+
+    .logo-image {
+        max-width: 60%;
+    }
+
+    .design-section {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+    }
+
+
+    .yantra-section {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;    
+    }
+
+    .bead-section {
+        flex-direction: column;
+    }
+
+    .add-cart-btn {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    .quantity-section {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .bead-headings {
+        flex-direction: column;
+    }
+
+    .remove-button {
+        width: 100%;
+        margin: 10px 0px 10px 0px;
+    }
+
+    .action-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .add-button {
+        width: 100%;
+        font-size: 16px;
+        z-index: 10;
+        touch-action: manipulation;
+    }
+
+    .add-cart-btn:hover {
+        width: 100%;
+        font-size: 16px;
+        z-index: 10;
+        touch-action: manipulation;
+    }
+
+    .action {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+
+    .dropdown {
+        padding: 8px;
+        margin-right: 10px;
+        border-radius: 4px;
+        border: 1px solid rgb(221, 221, 221);
+        width: 100%;
+    }
+
+
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    .left-section, 
+    .right-section {
+        width: 100%;
+    }
+
+    .logo-image {
+        max-width: 40%;
+    }
+
+    .design-section {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+
+
+    .yantra-section {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 10px;    
+    }
+
+
+    .add-cart-btn {
+        width: 100%;
+        z-index: 10;
+        touch-action: manipulation;
+    }
+
+
+    .add-cart-btn:hover
+    {
+        width: 100%;
+        z-index: 10;
+        touch-action: manipulation;
+    }
+
+    .bead-section {
+        flex-direction: row;
+    }
+
+
+    .action-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+
+    .quantity-section {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    
+    .add-button {
+        width: 100%;
+        font-size: 16px;
+    }
+
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    .left-section, 
+    .right-section {
+        width: 100%;
+    }
+
+    .logo-image {
+        max-width: 30%;
+    }
+
+    .design-section {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    }
+
+
+    .yantra-section {
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 10px;    
+    }
+
+    .add-cart-btn {
+        width: 50%;
+    }
+}
+
+@media (min-width: 992px) {
+    .main-container {
+        flex-direction: row;
     }
 
     .left-section {
-        width: 100%;
+        width: 50%;
     }
 
     .right-section {
-        width: 100%;
+        width: 50%;
+    }
+
+    .design-section {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+
+    .yantra-section {
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 10px;    
+    }
+
+
+    .add-cart-btn {
+        width: 35%;
     }
 }
