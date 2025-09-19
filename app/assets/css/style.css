@@ -6,10 +6,11 @@
 
 .main-section
 {
-	max-width: 1200px;
+    max-width: 1200px;
     width: 100%;
-	margin: auto;  
-	font-family: Arial, sans-serif;
+    margin: auto;  
+    font-family: Arial, sans-serif;
+    padding: 40px 20px;
 }
 
 .logo-section {
@@ -19,8 +20,8 @@
 
 .logo-image
 {
-	max-width: 25%;
-	padding-top: 10px;
+    max-width: 25%;
+    padding-top: 10px;
 }
 
 .main-container {
@@ -30,9 +31,9 @@
 
 .main-heading
 {
-	color: black;
-	text-align: center;
-	margin: 30px;
+    color: black;
+    text-align: center;
+    margin: 30px;
 }
 
 .left-section {
@@ -52,27 +53,27 @@
 
 .selected-image
 {
-	max-width: 100%;
-	max-height: 500px;
-	object-fit: contain;
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
 }
 
 .section-heading
 {
-	margin-top: 20px;
+    margin-top: 20px;
 }
 
 .design-section
 {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-	gap: 10px;
-	margin: 15px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
 }
 
 .design-div
 {
-	flex: 1;
+    flex: 1;
     border-radius: 10px;
     text-align: center;
     cursor: pointer;
@@ -81,20 +82,20 @@
 
 .design-image-div
 {
-	width: 100%;
-	border-radius: 8px;
+    width: 100%;
+    border-radius: 8px;
 }
 
 .bead-section
 {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .quantity-section
 {
-	display: flex;
+    display: flex;
     align-items: center;
     gap: 20px;
     border: 1px solid grey;
@@ -102,7 +103,7 @@
 }
 
 .quantity-button
-{	
+{   
     background: none;
     border: none;
     width: 32px;
@@ -113,49 +114,49 @@
 
 .qty-value
 {
-	min-width: 30px;
-	text-align: center;
+    min-width: 30px;
+    text-align: center;
 }
 
 .add-button
 {
-	background: #b21a2b;
-	color: #fff;
-	padding: 8px 15px;
-	border: none;
-	border-radius: 10px;
+    background: #b21a2b;
+    color: #fff;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 10px;
 }
 
 
 .cap-section
 {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .beads-summary
 {
-	margin-top: 30px;
-	border-top: 1px solid #ddd;
-	padding-top: 20px;
+    margin-top: 30px;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
 }
 
 .beads-list
 {
-	margin-bottom: 10px;
-	display: flex;
-	align-items: center;
-	gap: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .remove-button
 {
-	background: #b21a2b;
+    background: #b21a2b;
     color: #fff;
     padding: 10px 12px;
     border: none;
-	border-radius: 10px;
+    border-radius: 10px;
     cursor: pointer;
     margin-left: 10px;
 }
@@ -177,12 +178,12 @@
 
 .add-cart-btn:hover
 {
-	display: flex;
+    display: flex;
     gap: 10px;
     margin-top: 20px;
     width: 35%;
     padding: 10px;
-	background: #212862;
+    background: #212862;
     color: #fff;
     border: none;
     border-radius: 15px;
@@ -214,15 +215,15 @@ svg.w-5.h-5 {
 }
 
 .bead-headings {
-	display: flex;
-	gap:  1px;
+    display: flex;
+    gap:  1px;
 }
 
 .sub-heading {
-	color: red;
-	font-size: 13px;
-	font-weight: 600;
-	margin: 8px;
+    color: red;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 8px;
 }
 
 .loader-overlay {
@@ -522,4 +523,36 @@ span.yantra-sub-heading {
     .add-cart-btn {
         width: 35%;
     }
+}
+
+
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  text-align: left;
+}
+
+.dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  z-index: 100;
+}
+
+.dropdown-option:hover {
+  background-color: #f0f0f0;
 }

@@ -11,7 +11,7 @@ export const loader = async () => {
       btn.style.position = "fixed";
       btn.style.bottom = "30px";
       btn.style.right = "30px";
-      btn.style.backgroundColor = "#ff7f50";
+      btn.style.backgroundColor = "#212862";
       btn.style.color = "#fff";
       btn.style.padding = "12px 20px";
       btn.style.borderRadius = "10px";
@@ -24,7 +24,7 @@ export const loader = async () => {
       btn.onmouseleave = function() { btn.style.transform = "scale(1)"; };
 
       btn.onclick = function() {
-        window.open("https://customize-mala.myshopify.com/apps/customize-mala", "_blank");
+        window.open("https://rudrasamrat.com/pages/customize-mala", "_blank");
       };
 
       document.body.appendChild(btn);

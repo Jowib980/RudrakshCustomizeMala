@@ -97,12 +97,20 @@ export default function MalaBuilder() {
   const [selectedCap, setSelectedCap] = useState(false);
   const [selectedCapVariant, setSelectedCapVariant] = useState(null);
   const [malaItems, setMalaItems] = useState([]);
-  const [selectedVariantId, setSelectedVariantId] = useState(""); 
+  const [selectedBeadVariantId, setSelectedBeadVariantId] = useState(""); 
+  const [selectedMalaVariantId, setSelectedMalaVariantId] = useState("");
   const [userIp, setUserIp] = useState(null);
   const [isReady, setIsReady] = useState(false);
-  const [selectedYantra, setSelectedYantra] = useState("");
+  const [selectedYantra, setSelectedYantra] = useState(null);
 
   const options = designOptions[selectedDesign];
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (node) => {
+    setSelectedYantra(node);
+    setIsOpen(false); // close dropdown after selection
+  };
 
   // ✅ Get IP and cache it
   const getUserIp = async () => {
@@ -146,11 +154,12 @@ export default function MalaBuilder() {
         setQuantity(data.quantity || 1);
         setSelectedThread(data.selectedThread || null);
         setSelectedChain(data.selectedChain || null);
+        setSelectedMalaVariantId(data.selectedMalaVariant || null);
         setSelectedCap(data.selectedCap || null);
         setSelectedCapVariant(data.selectedCapVariant || null);
 
         setSelectedBeadId(data.selectedBeadId || null);
-        setSelectedVariantId(data.selectedVariantId || null);
+        setSelectedBeadVariantId(data.selectedBeadVariantId || null);
 
         setSelectedYantra(data.selectedYantra || null);
       } catch (e) {
@@ -167,10 +176,11 @@ export default function MalaBuilder() {
       malaItems,
       selectedDesign,
       selectedBeadId,
-      selectedVariantId,
+      selectedBeadVariantId,
       quantity,
       selectedThread,
       selectedChain,
+      selectedMalaVariant,
       selectedCap,
       selectedCapVariant,
       selectedYantra,
@@ -182,7 +192,8 @@ export default function MalaBuilder() {
     malaItems,
     selectedDesign,
     selectedBeadId,
-    selectedVariantId,
+    selectedBeadVariantId,
+    setSelectedMalaVariantId,
     quantity,
     selectedThread,
     selectedChain,
@@ -233,12 +244,12 @@ export default function MalaBuilder() {
 
     setMalaItems([]);
     setSelectedBeadId("");
-    setSelectedVariantId("");
+    setSelectedBeadVariantId("");
 
     setSelectedChain(null);
+    setSelectedMalaVariantId(null);
 
     setSelectedThread("");
-    setSelectedChain(null);
 
     if (newOptions.chains.length > 0) {
       setSelectedChain(newOptions.chains[0].node);
@@ -260,7 +271,7 @@ export default function MalaBuilder() {
   };
 
   const handleAdd = () => {
-    if (!selectedBeadId || !selectedVariantId) {
+    if (!selectedBeadId || !selectedBeadVariantId) {
       setBeadError(true);
        return toast.error("Please select bead and bead type!");
     }
@@ -268,7 +279,7 @@ export default function MalaBuilder() {
     setBeadError(false);
     
     const bead = beads.find(p => p.node.id === selectedBeadId).node;
-    const variant = bead.variants.edges.find(v => v.node.id === selectedVariantId).node;
+    const variant = bead.variants.edges.find(v => v.node.id === selectedBeadVariantId).node;
     
     const newItem = {
       id: variant.id,
@@ -295,7 +306,19 @@ export default function MalaBuilder() {
   
   const totalBeads = malaItems.reduce((sum, item) => sum + item.quantity, 0);
   const beadsTotal = malaItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const chainPrice = selectedChain ? parseFloat(selectedChain.variants.edges[0].node.price.amount) : 0;
+  const selectedMalaVariant = selectedMalaVariantId
+    ? options.chains
+        .flatMap((chain) => chain.node.variants.edges.map((v) => v.node))
+        .find((v) => v.id === selectedMalaVariantId)
+    : null;
+
+  const chainPrice = selectedMalaVariant
+    ? parseFloat(selectedMalaVariant.price.amount)
+    : selectedChain
+    ? parseFloat(selectedChain.variants.edges[0].node.price.amount)
+    : 0;
+
+  // const chainPrice = selectedChain ? parseFloat(selectedChain.variants.edges[0].node.price.amount) : 0;
   const capPrice = selectedCap && selectedCapVariant
   ? parseFloat(selectedCapVariant.price.amount) * totalBeads
   : 0;
@@ -304,14 +327,12 @@ export default function MalaBuilder() {
   const totalPrice = beadsTotal + chainPrice + capPrice + yantraPrice;
 
 
-  const CUSTOM_PRODUCT_VARIANT_ID = "gid://shopify/ProductVariant/46091600363671"; // your variant ID 
-
-  const DOMAIN = "https://customize-mala.cardiacambulance.com";
+  const CUSTOM_PRODUCT_VARIANT_ID = "gid://shopify/ProductVariant/51308905136450"; // your variant ID 
 
   const selectedDesignObj = designs.find(d => d.id === selectedDesign);
 
   const handleAddToCart = async () => {
-console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaItems });
+    console.log("Add to cart clicked!", { selectedBeadId, selectedBeadVariantId, malaItems });
     const totalBeads = malaItems.reduce((sum, item) => sum + item.quantity, 0);
 
     let count1Mukhi = 0;
@@ -370,7 +391,7 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
           selections: {
             Design: selectedDesignObj.name,
             DesignImage: selectedDesignObj.img
-              ? `${DOMAIN}${selectedDesignObj.img}`
+              ? `${selectedDesignObj.img}`
               : "",
             Beads: malaItems
               .map(i => `${i.title} x${i.quantity} = ₹${(i.price * i.quantity).toFixed(2)}`)
@@ -394,7 +415,7 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
 
       if (data.checkoutUrl) {
         setLoading(false);
-        window.location.href = data.checkoutUrl; // redirect to checkout
+        window.top.location.href = data.checkoutUrl; // redirect to checkout
       } else {
         setLoading(false);
         toast.error("Checkout error: " + (data?.message || JSON.stringify(data)));
@@ -404,6 +425,15 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
       setLoading(false);
     }
   };
+
+
+  // Utility to match cap ↔ mala dynamically
+  const findMatchingVariant = (variants, keyword) => {
+    return variants
+      .flatMap((p) => p.node.variants.edges.map((v) => v.node))
+      .find((v) => v.title.toLowerCase().includes(keyword.toLowerCase()));
+  };
+
   
   return (
     <div className="container">
@@ -417,9 +447,9 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
           </div>
         )}
 
-        <div className="logo-section">
+        {/*<div className="logo-section">
           <img src={logo} alt="Logo" className="logo-image" />
-        </div>
+        </div>*/}
         <h1 className="main-heading">Customize Your Mala - Select your Mala Variant</h1>
 
         <div className="main-container">
@@ -533,7 +563,7 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                   {selectedDesign === "design2b" && (
                     <>
                     <h3>Choose Mala</h3>
-                    <select
+                    {/* <select
                       className="dropdown"
                       style={{ padding: "8px", marginRight: "10px", borderRadius: "4px",border: "1px solid rgb(221, 221, 221)" }}
                       value={selectedChain?.id}
@@ -545,13 +575,51 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                       }}
                     >
 
-                      {/* Chains */}
                       {options.chains.map((c) => (
                         <option key={`chain-${c.node.id}`} value={c.node.id}>
                           {c.node.title} (+₹{c.node.variants.edges[0].node.price.amount})
                         </option>
                       ))}
-                    </select>
+                    </select> */}
+
+                    <select
+                        style={{
+                          border: "1px solid rgb(221, 221, 221)",
+                          padding: "8px",
+                          borderRadius: "4px",
+                          whiteSpace: "normal",
+                          wordBreak: "break-all"
+                        }}
+                        value={selectedMalaVariantId || ""}
+                        onChange={(e) => {
+                          setSelectedMalaVariantId(e.target.value);
+
+                          // Auto-sync Cap if Design2B
+                          if (selectedDesign === "design2b") {
+                            const selected = options.chains
+                              .flatMap((chain) => chain.node.variants.edges.map((v) => v.node))
+                              .find((v) => v.id === e.target.value);
+
+                            if (selected) {
+                              const keyword = selected.title.split(" ").slice(-1)[0]; // last word e.g. "Silver"
+                              const targetCapVariant = findMatchingVariant(options.caps, keyword);
+
+                              if (targetCapVariant) {
+                                setSelectedCapVariant(targetCapVariant);
+                              }
+                            }
+                          }
+                        }}
+                      >
+                        {options.chains.flatMap((chain) =>
+                          chain.node.variants.edges.map((v) => (
+                            <option key={v.node.id} value={v.node.id}>
+                              {v.node.title} (+₹{v.node.price.amount})
+                            </option>
+                          ))
+                        )}
+                      </select>
+
                     </>
                     )}
                 </>
@@ -578,7 +646,10 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
 
                     {/* Show dropdown only if With Cap */}
                     {selectedCap && options.caps.length > 0 && (
-                      <select
+                      <>
+                      {selectedDesign !== "design2b" ? (
+
+                        <select
                         value={selectedCapVariant?.id || ""}
                         onChange={(e) => {
                           const selected = options.caps
@@ -601,6 +672,50 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                           ))
                         )}
                       </select>
+
+                        ): (
+
+                        <select
+                          style={{
+                            border: "1px solid rgb(221, 221, 221)",
+                            padding: "8px",
+                            marginLeft: "10px",
+                            borderRadius: "4px",
+                            whiteSpace: "normal",
+                            wordBreak: "break-all"
+                          }}
+                          value={selectedCapVariant?.id || ""}
+                          onChange={(e) => {
+                            const selected = options.caps
+                              .flatMap((cap) => cap.node.variants.edges.map((v) => v.node))
+                              .find((v) => v.id === e.target.value);
+
+                            setSelectedCapVariant(selected || null);
+
+                            // Auto-sync Mala if Design2B
+                            if (selectedDesign === "design2b" && selected) {
+                              const keyword = selected.title.split(" ")[0]; // e.g. "Silver", "Copper"
+                              const targetMalaVariant = findMatchingVariant(options.chains, keyword);
+
+                              if (targetMalaVariant) {
+                                setSelectedChain(options.chains[0].node);
+                                setSelectedMalaVariantId(targetMalaVariant.id);
+                              }
+                            }
+                          }}
+                        >
+                          {options.caps.flatMap((cap) =>
+                            cap.node.variants.edges.map((v) => (
+                              <option key={v.node.id} value={v.node.id}>
+                                {v.node.title} (+₹{v.node.price.amount})
+                              </option>
+                            ))
+                          )}
+                        </select>
+
+
+                        )}
+                      </>
                     )}
                   </div>
                 </>
@@ -666,6 +781,7 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
             {/* Dropdowns */}
             <div className="bead-headings">
               <h3 style={{ margin: "5px" }}>Select Bead:</h3>
+              <span style={{ color: "grey", fontSize: "13px",fontWeight: "600", margin: "8px" }}>(min. 3 beads)</span>
               {malaItems.length > 0 && (
                 <span className="sub-heading">(Select more beads here...)</span>
               )}
@@ -675,14 +791,16 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                   value={selectedBeadId}
                   onChange={e => {
                     setSelectedBeadId(e.target.value);
-                    setSelectedVariantId(""); // reset variant
+                    setSelectedBeadVariantId(""); // reset variant
                     setBeadError(false);
                   }}
                   style={{
                     border: beadError && !selectedBeadId ? "2px solid red" : "1px solid #ddd",
                     padding: "8px",
                     marginRight: "10px",
-                    borderRadius: "4px" 
+                    borderRadius: "4px",
+                    whiteSpace: "normal",
+                    wordBreak: "break-all"
                   }}
                 >
                   <option value=""> Select Bead </option>
@@ -696,21 +814,26 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                 {/* Show variants only if a bead is selected */}
                 {selectedBeadId && (
                   <select
-                    value={selectedVariantId}
+                    value={selectedBeadVariantId}
                     onChange={e => {
-                      setSelectedVariantId(e.target.value);
+                      setSelectedBeadVariantId(e.target.value);
                       setBeadError(false);
                     }}
                     style={{
-                      border: beadError && !selectedVariantId ? "2px solid red" : "1px solid #ddd",
+                      border: beadError && !selectedBeadVariantId ? "2px solid red" : "1px solid #ddd",
                       padding: "8px",
                       flex: 1,
-                      borderRadius: "4px" 
+                      borderRadius: "4px" ,
+                      width: "100%",
+                      whiteSpace: "normal",
+                      wordBreak: "break-all"
                     }}
                   >
                     <option value=""> Select Bead Type </option>
                     {selectedBeadId &&
-                      beads.find(p => p.node.id === selectedBeadId)?.node?.variants?.edges.map(v => (
+                      beads.find(p => p.node.id === selectedBeadId)?.node?.variants?.edges
+                      .filter(v => v.node.title.toLowerCase().includes("without silver capping"))
+                      .map(v => (
                         <option key={v.node.id} value={v.node.id}>
                           {v.node.title} - ₹{v.node.price.amount}
                         </option>
@@ -746,7 +869,7 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                 </div>
             </div>
 
-            <div className="yantra-container">
+           {/* <div className="yantra-container">
               <div className="yantra-heading">
                   <h3 style={{ margin: "5px" }}>Choose Yantra:</h3>
                   <span className="yantra-sub-heading">(Optional)</span>
@@ -782,7 +905,113 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                   </div>
                 ))}
               </div>
+            </div>*/}
+
+          <div className="yantra-container" style={{ position: "relative", width: "300px" }}>
+            <div className="yantra-heading">
+              <h3 style={{ margin: "5px" }}>Choose Yantra:</h3>
+              <span className="yantra-sub-heading">(Optional)</span>
             </div>
+
+            <div className="custom-dropdown">
+              {/* Dropdown button */}
+              <button
+                className="dropdown-button"
+                onClick={() => setIsOpen(!isOpen)}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "8px",
+                  border: "1px solid #ddd",
+                  textAlign: "left",
+                  background: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                {selectedYantra ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <img
+                      src={selectedYantra.images.edges[0]?.node.url || "/placeholder.jpg"}
+                      alt={selectedYantra.title}
+                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                    />
+                    <span>
+                      {selectedYantra.title} - Rs. {selectedYantra.variants.edges[0].node.price.amount}
+                    </span>
+                  </div>
+                ) : (
+                  "Select Yantra "
+                )}
+              </button>
+
+              {/* Dropdown options */}
+              {isOpen && (
+                <div
+                  className="dropdown-options"
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    background: "#fff",
+                    zIndex: 1000,
+                  }}
+                >
+                  {/* Default "Select Yantra" option */}
+                  <div
+                    key="default"
+                    className="dropdown-option"
+                    onClick={() => handleSelect(null)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "5px 10px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #eee",
+                      fontStyle: "italic",
+                      color: "#777",
+                    }}
+                  >
+                    Select Yantra
+                  </div>
+
+                  {/* Actual Yantra options */}
+                  {yantras.map(({ node }) => (
+                    <div
+                      key={node.id}
+                      className="dropdown-option"
+                      onClick={() => handleSelect(node)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "5px 10px",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #eee",
+                        background: selectedYantra?.id === node.id ? "#f0f0f0" : "#fff",
+                      }}
+                    >
+                      <img
+                        src={node.images.edges[0]?.node.url || "/placeholder.jpg"}
+                        alt={node.title}
+                        style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "4px" }}
+                      />
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontWeight: "600", fontSize: "14px" }}>{node.title}</span>
+                        <span style={{ fontSize: "12px", color: "#555" }}>Rs. {parseFloat(node.variants.edges[0].node.price.amount).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </div>
 
             {(selectedThread || selectedChain || selectedCap || selectedYantra) && (
               <>
@@ -790,9 +1019,23 @@ console.log("Add to cart clicked!", { selectedBeadId, selectedVariantId, malaIte
                 <ul style={{ listStyle: "none", padding: 0 }}>
                   {selectedThread && <li style={{ marginBottom: "10px"}}> <b> Thread: </b> {selectedThread}</li>}
 
-                  {selectedChain && (
-                    <li style={{ marginBottom: "10px"}}>
-                      <b> Mala Type: </b> {selectedChain.title} (+₹{chainPrice.toFixed(2)})
+                  {(selectedMalaVariantId || selectedChain) && (
+                    <li style={{ marginBottom: "10px" }}>
+                      <b>Mala Type:</b>{" "}
+                      {selectedMalaVariantId
+                        ? // Case 1: design2b → use Mala variant
+                          (() => {
+                            const malaVariant = options.chains
+                              .flatMap((chain) => chain.node.variants.edges.map((v) => v.node))
+                              .find((v) => v.id === selectedMalaVariantId);
+                            return `${malaVariant?.title || ""} (+₹${parseFloat(
+                              malaVariant?.price.amount || 0
+                            ).toFixed(2)})`;
+                          })()
+                        : // Case 2: other designs → just show Mala product title (not variant)
+                          `${selectedChain.title} (+₹${parseFloat(
+                            selectedChain.variants.edges[0].node.price.amount || 0
+                          ).toFixed(2)})`}
                     </li>
                   )}
 
